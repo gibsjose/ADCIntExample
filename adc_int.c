@@ -24,6 +24,7 @@
 
 //ADC Value
 unsigned long Value;
+volatile unsigned ValueUpdated;
 
 //Interrupt handler
 void ADCIntHandler()
@@ -32,6 +33,7 @@ void ADCIntHandler()
     ADCIntClear(ADC0_BASE, 3);
 
     ADCSequenceDataGet(ADC0_BASE, 3, &Value);
+    ValueUpdated = 1;
 }
 
 void Timer0IntHandler()
@@ -99,11 +101,12 @@ int main(void)
 	//Loop...
 	while(1)
 	{
-		//Print the value
-		usprintf(str, "ADC = %4d", Value);
-		RIT128x96x4StringDraw(str, 0, 0, 15);
-
-		//Delay a bit
-		SysCtlDelay(SysCtlClockGet() / 12);
+		if(ValueUpdated != 0)
+		{
+			ValueUpdated = 0;	//reset the flag marking if the value was just read
+			//Print the value
+			usprintf(str, "ADC = %4d", Value);
+			RIT128x96x4StringDraw(str, 0, 0, 15);
+		}
 	}
 }
